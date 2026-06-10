@@ -1,3 +1,12 @@
+## Arquivo 6 de 9 — `app/sindicompany/carrossel/novo/brand-tema-picker.tsx` (substituir TUDO)
+
+**Onde editar:**
+
+1. Abre: `https://github.com/dicadajumoreira/Sindicompany.info/blob/main/app/sindicompany/carrossel/novo/brand-tema-picker.tsx`
+2. **Lápis** → "Edit this file" → **Ctrl+A** → **Delete**.
+3. Cola o conteúdo abaixo:
+
+```typescript
 "use client";
 
 import { useState } from "react";
@@ -66,6 +75,12 @@ export function BrandTemaPicker({
     : marcas[0]?.slug ?? "";
   const [brand, setBrand] = useState(initialBrand);
   const temas = marcas.find((m) => m.slug === brand)?.temas ?? [];
+  // Ordem alfabetica (pt-BR, ignora acento/caixa) e remove qualquer
+  // 'Outro'/'Outros' vindo do DB pra nao duplicar a opcao fixa de tema
+  // livre, que sempre fica por ultimo.
+  const temasOrdenados = [...temas]
+    .filter((t) => t !== "Outro" && t !== "Outros")
+    .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
   const [objetivo, setObjetivo] = useState(defaultObjetivo);
   const [tema, setTema] = useState(
     temas.includes(defaultTema) ? defaultTema : "",
@@ -75,7 +90,7 @@ export function BrandTemaPicker({
   function onBrandChange(slug: string) {
     setBrand(slug);
     const novaLista = marcas.find((m) => m.slug === slug)?.temas ?? [];
-    if (!novaLista.includes(tema)) setTema("");
+    if (tema !== "Outro" && !novaLista.includes(tema)) setTema("");
   }
 
   return (
@@ -158,11 +173,12 @@ export function BrandTemaPicker({
           className={inputCls}
         >
           <option value="">— Selecione —</option>
-          {temas.map((t) => (
+          {temasOrdenados.map((t) => (
             <option key={t} value={t}>
               {t}
             </option>
           ))}
+          <option value="Outro">Outro (tema livre)</option>
         </select>
         {isOutro && (
           <input
@@ -179,3 +195,8 @@ export function BrandTemaPicker({
     </div>
   );
 }
+```
+
+4. Scroll → **"Commit changes..."** → **"Commit changes"**.
+
+Me confirma pra eu mandar o **arquivo 7** (o `novo/page.tsx` com o input de data).
