@@ -103,19 +103,12 @@ export async function getCarrosselFotoUploadIntent(
 export async function iniciarCarrosselAction(formData: FormData): Promise<void> {
   await requireAuth();
 
-  // Marca data-driven: aceita qualquer slug de marca ATIVA (cadastro).
-  // Marca desconhecida/inativa cai no default sindicompanybr. Antes isso
-  // achatava toda marca nova pra uma das 3 chumbadas — agora o slug real
-  // segue pro engine (buckets/handle/paleta/fontes proprios).
   const brandRaw = getStr(formData, "brand");
   const marcasAtivas = await listMarcas({ ativo: true });
   const brand = marcasAtivas.some((m) => m.slug === brandRaw)
     ? brandRaw
     : "sindicompanybr";
   const objetivoRaw = getStr(formData, "objetivo");
-  // O wizard oferece os 5 objetivos pra qualquer marca, entao a validacao
-  // aceita os 5 (antes restringia por marca e rejeitava combinacoes que a
-  // UI permitia — ex: Consvicta + Educar).
   const objetivosValidos = [
     "comentarios",
     "salvamentos",
@@ -124,18 +117,24 @@ export async function iniciarCarrosselAction(formData: FormData): Promise<void> 
     "educar",
   ];
   const objetivo = objetivosValidos.includes(objetivoRaw) ? objetivoRaw : "";
-  const titulo = getStr(formData, "titulo");
+  // 'data_postagem' substituiu o antigo 'titulo' no form. O titulo
+  // continua existindo na tabela (usado no AI prompt, fallback de capa,
+  // ZIPs, listagem) e e auto-derivado da data como "Postagem DD/MM/YYYY".
+  // HTML <input type="date"> ja garante o formato ISO YYYY-MM-DD.
+  const data_postagem = getStr(formData, "data_postagem");
+  const tituloDerivado = (() => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data_postagem);
+    return m ? `Postagem ${m[3]}/${m[2]}/${m[1]}` : "";
+  })();
+  const titulo = tituloDerivado;
   const temaSelecionado = getStr(formData, "tema");
   const temaOutro = getStr(formData, "tema_outro");
-  // 'Outro'/'Outros' eh um marcador da UI — substitui pelo texto livre
-  // que a editora digitou na caixa que aparece quando seleciona ele.
   const ehTemaLivre =
     temaSelecionado === "Outro" || temaSelecionado === "Outros";
   const tema = ehTemaLivre ? temaOutro : temaSelecionado;
   const formato = getStr(formData, "formato");
   const briefing = getStr(formData, "briefing");
   const n_slides_raw = parseInt(getStr(formData, "n_slides"), 10);
-  // Carrosseis tem de 5 a 10 slides. Fora disso, clampa pro intervalo.
   const n_slides = Number.isFinite(n_slides_raw)
     ? Math.max(5, Math.min(10, n_slides_raw))
     : 6;
@@ -144,7 +143,7 @@ export async function iniciarCarrosselAction(formData: FormData): Promise<void> 
     ? coverArchetypeRaw
     : undefined;
 
-  if (!titulo) backTo("/sindicompany/carrossel/novo", "Informe o título do carrossel.", formData);
+  if (!titulo) backTo("/sindicompany/carrossel/novo", "Informe a data de postagem.", formData);
   if (!objetivo) {
     backTo("/sindicompany/carrossel/novo", "Selecione o objetivo do carrossel.", formData);
   }
@@ -162,6 +161,7 @@ export async function iniciarCarrosselAction(formData: FormData): Promise<void> 
     brand,
     objetivo: objetivo || undefined,
     titulo,
+    data_postagem: data_postagem || undefined,
     tema,
     formato,
     briefing: briefing || undefined,
@@ -180,11 +180,6 @@ export async function iniciarCarrosselAction(formData: FormData): Promise<void> 
     );
   }
 
-  // ATENCAO: nao aguarda o gerarTresCopies aqui. Antes a chamada
-  // GPT (~10-20s com o system prompt expandido) somava ao tempo da
-  // server action, estourando o cap de 26s do Netlify Functions e
-  // quebrando o redirect. Agora a /copy page detecta copy_options
-  // vazio e dispara a geracao client-side com timeout proprio.
   revalidatePath("/sindicompany/carrossel");
   redirect(`/sindicompany/carrossel/${carrossel.id}/copy`);
 }
@@ -204,9 +199,6 @@ export async function escolherCopyAction(
   redirect(`/sindicompany/carrossel/${carrosselId}/foto`);
 }
 
-/** Re-roda gerarTresCopies pro mesmo briefing e sobrescreve copy_options.
- *  Reseta copy_selected pra null pra editora não enviar pra etapa 3 sem
- *  revisar de novo. Usado quando nenhuma das 3 copies anteriores serviu. */
 export async function regenerarCopiesAction(carrosselId: string): Promise<void> {
   await requireAuth();
   const carrossel = await getCarrossel(carrosselId);
@@ -240,9 +232,6 @@ export async function finalizarCarrosselAction(
   carrosselId: string,
 ): Promise<void> {
   await requireAuth();
-  // Marca como em_producao ANTES de disparar — assim o auto-redirect
-  // do detalhe (que manda rascunhos pra /foto) nao volta a pessoa pra
-  // mesma pagina, e a pagina inicial mostra "Em producao".
   try {
     await updateCarrossel(carrosselId, { status: "em_producao" });
   } catch {
@@ -322,7 +311,6 @@ export async function generateFotoCapaWithAI(input: {
     return { ok: false, error: "Sessão expirada. Faça login de novo." };
   }
 
-  // Lê o registro pra usar a copy escolhida como contexto editorial
   let carrosselRow: Awaited<ReturnType<typeof getCarrossel>>;
   try {
     carrosselRow = await getCarrossel(input.carrosselId);
@@ -338,14 +326,6 @@ export async function generateFotoCapaWithAI(input: {
   const tituloCapa = slide1?.titulo || carrossel.titulo;
   const subtitulo = slide1?.body || "";
 
-  // Pipeline 2 estágios pra evitar safety filter:
-  // 1a) Se a editora descreveu a imagem manualmente, traduz a descricao
-  //     dela com fidelidade (preserva detalhes, so neutraliza palavras
-  //     que DALL-E bloqueia).
-  // 1b) Se NAO descreveu, deriva uma cena a partir da copy escolhida
-  //     (titulo + body do slide 1). Esse caminho transforma temas
-  //     abstratos ("seguranca", "conflito") em cenas concretas.
-  // 2) A cena vira o Subject do prompt do DALL-E.
   let subject = "";
   const userDesc = (input.userPrompt ?? "").trim();
   if (userDesc) {
@@ -360,8 +340,6 @@ export async function generateFotoCapaWithAI(input: {
     if (cena.ok) subject = cena.sceneEn;
   }
 
-  // Orientacao de cor da foto de capa puxa a PALETA DA MARCA (cadastro).
-  // Sem paleta no DB -> fallback historico (pastels Sindicompany).
   const marca = await getMarca(carrossel.brand ?? "sindicompanybr");
   function paletteGuidance(): string {
     const pal = marca?.paleta;
@@ -411,12 +389,6 @@ export async function generateFotoCapaWithAI(input: {
     style: "natural",
   });
 
-  // Sem auto-retry server-side: o caminho de retry chamava mais um
-  // GPT (~5s) + outro DALL-E (~10-15s), facil estourar o cap de 26s
-  // do Netlify Functions e voltar 504 / 'unexpected response' pra
-  // editora. Se o filtro bloquear, devolvemos a mensagem direta e
-  // a editora reescreve a descricao.
-
   if (!result.ok) {
     return {
       ok: false,
@@ -426,17 +398,8 @@ export async function generateFotoCapaWithAI(input: {
     };
   }
 
-  // generateImage ja devolve os bytes prontos (decoded de b64_json no caso
-  // do gpt-image-1, ou baixados da URL temporaria no caso do dall-e-3).
   let bytes: Buffer = result.bytes;
 
-  // DALL-E 3 só entrega 1024x1024, 1024x1792 ou 1792x1024 — nenhum é
-  // 4:5. Pedimos vertical (1024x1792) e cropamos pro centro 4:5
-  // (1080x1350) antes de salvar — tamanho oficial do feed Instagram
-  // (escala leve de 1024->1080 + crop vertical pra 4:5 exato).
-  // sharp eh dep explicita em package.json — se falhar aqui o erro
-  // vira pra editora em vez de silenciar (antes salvavamos 1024x1792
-  // sem aviso, virou bug).
   try {
     const sharp = (await import("sharp")).default;
     bytes = await sharp(bytes)
@@ -458,7 +421,6 @@ export async function generateFotoCapaWithAI(input: {
     return { ok: false, error: `Falha ao subir pro Storage: ${describeError(e)}` };
   }
 
-  // Persiste já no registro pra a editora não perder se sair da página
   try {
     await updateCarrossel(input.carrosselId, { foto_capa_url: publicUrl });
   } catch {
@@ -487,14 +449,12 @@ export async function excluirCarrosselAction(carrosselId: string): Promise<void>
   try {
     await deleteCarrossel(carrosselId);
   } catch (e) {
-    // segue silenciosamente — a lista vai refletir o estado real do banco
     console.error("[carrossel] falha ao excluir:", e);
   }
   revalidatePath("/sindicompany/carrossel");
   redirect("/sindicompany/carrossel");
 }
 
-// Exclusao em massa: recebe os ids selecionados (checkboxes name="ids").
 export async function excluirVariosCarrosseisAction(
   formData: FormData,
 ): Promise<void> {
