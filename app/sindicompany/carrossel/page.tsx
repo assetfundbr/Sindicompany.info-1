@@ -1,12 +1,3 @@
-## Arquivo 5 de 9 — `app/sindicompany/carrossel/page.tsx` (substituir TUDO)
-
-**Onde editar:**
-
-1. Abre: `https://github.com/dicadajumoreira/Sindicompany.info/blob/main/app/sindicompany/carrossel/page.tsx`
-2. **Lápis** → "Edit this file" → **Ctrl+A** → **Delete**.
-3. Cola o conteúdo abaixo:
-
-```typescript
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -59,8 +50,6 @@ export default async function CarrosseisPage() {
   try {
     carrosseis = await listCarrosseis();
   } catch (e) {
-    // Mostra a causa REAL (antes era um texto fixo de "rode a migration"
-    // que mascarava erro de conexão, projeto pausado, RLS, etc.).
     const code =
       e && typeof e === "object" && "code" in e
         ? ` [${(e as { code?: string }).code}]`
@@ -68,8 +57,6 @@ export default async function CarrosseisPage() {
     dbError = `Não consegui carregar os carrosséis: ${describeError(e)}${code}`;
   }
 
-  // Mapa slug -> handle pra rotular a marca (inclui marcas novas, nao so
-  // as 3 chumbadas). Falha silenciosa: cai no proprio slug.
   const handlePorMarca = new Map<string, string>();
   try {
     for (const m of await listMarcas()) handlePorMarca.set(m.slug, m.handle);
@@ -145,38 +132,19 @@ export default async function CarrosseisPage() {
               <thead className="bg-onix-50">
                 <tr>
                   <th className="w-10 px-5 py-3"></th>
-                  <th className="text-left font-semibold text-onix-900 px-5 py-3">
-                    Marca
-                  </th>
-                  <th className="text-left font-semibold text-onix-900 px-5 py-3">
-                    Postagem
-                  </th>
-                  <th className="text-left font-semibold text-onix-900 px-5 py-3">
-                    Tema
-                  </th>
-                  <th className="text-left font-semibold text-onix-900 px-5 py-3">
-                    Formato
-                  </th>
-                  <th className="text-left font-semibold text-onix-900 px-5 py-3">
-                    Slides
-                  </th>
-                  <th className="text-left font-semibold text-onix-900 px-5 py-3">
-                    Status
-                  </th>
-                  <th className="text-left font-semibold text-onix-900 px-5 py-3">
-                    Criado
-                  </th>
-                  <th className="text-right font-semibold text-onix-900 px-5 py-3">
-                    Ações
-                  </th>
+                  <th className="text-left font-semibold text-onix-900 px-5 py-3">Marca</th>
+                  <th className="text-left font-semibold text-onix-900 px-5 py-3">Postagem</th>
+                  <th className="text-left font-semibold text-onix-900 px-5 py-3">Tema</th>
+                  <th className="text-left font-semibold text-onix-900 px-5 py-3">Formato</th>
+                  <th className="text-left font-semibold text-onix-900 px-5 py-3">Slides</th>
+                  <th className="text-left font-semibold text-onix-900 px-5 py-3">Status</th>
+                  <th className="text-left font-semibold text-onix-900 px-5 py-3">Criado</th>
+                  <th className="text-right font-semibold text-onix-900 px-5 py-3">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {carrosseis.map((c) => (
-                  <tr
-                    key={c.id}
-                    className="border-t border-onix-100 hover:bg-onix-50/50"
-                  >
+                  <tr key={c.id} className="border-t border-onix-100 hover:bg-onix-50/50">
                     <td className="px-5 py-3">
                       <input
                         type="checkbox"
@@ -188,8 +156,7 @@ export default async function CarrosseisPage() {
                     </td>
                     <td className="px-5 py-3">
                       <span className="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-onix-100 text-onix-800">
-                        {handlePorMarca.get(c.brand ?? "") ??
-                          `@${c.brand ?? "sindicompanybr"}`}
+                        {handlePorMarca.get(c.brand ?? "") ?? `@${c.brand ?? "sindicompanybr"}`}
                       </span>
                     </td>
                     <td className="px-5 py-3">
@@ -204,15 +171,11 @@ export default async function CarrosseisPage() {
                     <td className="px-5 py-3 text-g60">{c.formato ?? "—"}</td>
                     <td className="px-5 py-3 text-g60">{c.n_slides ?? 6}</td>
                     <td className="px-5 py-3">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded text-xs font-semibold ${STATUS_CLASSES[c.status]}`}
-                      >
+                      <span className={`inline-block px-2.5 py-0.5 rounded text-xs font-semibold ${STATUS_CLASSES[c.status]}`}>
                         {STATUS_LABELS[c.status]}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-g60 text-xs">
-                      {formatDate(c.created_at)}
-                    </td>
+                    <td className="px-5 py-3 text-g60 text-xs">{formatDate(c.created_at)}</td>
                     <td className="px-5 py-3 text-right">
                       <div className="inline-flex justify-end">
                         <CarrosselRowActions id={c.id} titulo={c.titulo} />
@@ -229,8 +192,3 @@ export default async function CarrosseisPage() {
     </DashboardShell>
   );
 }
-```
-
-4. Scroll → **"Commit changes..."** → **"Commit changes"**.
-
-Me confirma pra eu mandar o **arquivo 6** (o `brand-tema-picker` com alfabético + Outro).
