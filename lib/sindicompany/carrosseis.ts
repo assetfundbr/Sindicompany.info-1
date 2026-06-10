@@ -196,7 +196,7 @@ export const CARROSSEL_CTA_TEMPLATES: {
     hint: "Convida pra abrir conversa",
     instruction:
       "CTA DE WHATSAPP: convida a iniciar conversa direta (ex: 'Chama no " +
-      "WhatsApp', 'Manda 'OI' no direct e a gente resolve'). Use quando o " +
+      "WhatsApp', 'Manda \"OI\" no direct e a gente resolve'). Use quando o " +
       "objetivo for converter em atendimento/venda. Adapte o tom: " +
       "sindicompany e direto, by e consultivo, consvicta e boutique.",
   },
@@ -223,6 +223,7 @@ export interface Carrossel {
   brand: CarrosselBrand;
   objetivo: string | null;
   titulo: string;
+  data_postagem: string | null;
   tema: string | null;
   formato: string | null;
   briefing: string | null;
@@ -246,6 +247,7 @@ export interface CarrosselInput {
   brand?: CarrosselBrand;
   objetivo?: string;
   titulo: string;
+  data_postagem?: string;
   tema?: string;
   formato?: string;
   briefing?: string;
