@@ -86,16 +86,14 @@ export default async function NovoCarrosselPage({
           />
 
           <Field
-            label="Título interno"
-            hint="Pra organização — não aparece no post."
+            label="Data de postagem"
+            hint="Quando este carrossel vai ao ar. Identifica a postagem na listagem."
           >
             <input
-              type="text"
-              name="titulo"
-              defaultValue={v("titulo")}
+              type="date"
+              name="data_postagem"
+              defaultValue={v("data_postagem")}
               required
-              maxLength={120}
-              placeholder='Ex: "História real — síndico que reduziu inadimplência"'
               className={inputCls}
             />
           </Field>
