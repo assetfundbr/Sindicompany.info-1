@@ -1,12 +1,3 @@
-## Arquivo 6 de 9 — `app/sindicompany/carrossel/novo/brand-tema-picker.tsx` (substituir TUDO)
-
-**Onde editar:**
-
-1. Abre: `https://github.com/dicadajumoreira/Sindicompany.info/blob/main/app/sindicompany/carrossel/novo/brand-tema-picker.tsx`
-2. **Lápis** → "Edit this file" → **Ctrl+A** → **Delete**.
-3. Cola o conteúdo abaixo:
-
-```typescript
 "use client";
 
 import { useState } from "react";
@@ -14,8 +5,6 @@ import { useState } from "react";
 const inputCls =
   "block w-full rounded-md border border-onix-100 bg-white px-3 py-2 text-sm text-onix-900 focus:outline-none focus:ring-2 focus:ring-mint-300";
 
-// Objetivos GLOBAIS — iguais pra todas as marcas (decisao da Juliana).
-// Os ids batem 1:1 com OBJETIVO_INSTRUCOES do openai-text.ts.
 const OBJETIVOS = [
   {
     id: "comentarios",
@@ -59,10 +48,6 @@ interface Props {
   defaultTemaOutro: string;
 }
 
-/** Seletor de MARCA + OBJETIVO + TEMA do /carrossel/novo. As marcas e os
- *  temas vem do DB (tabela marcas); o objetivo e global. Trocar a marca
- *  troca a lista de temas e define a voz/estrategia do copy (la no
- *  gerarTresCopies, via persona da marca). */
 export function BrandTemaPicker({
   marcas,
   defaultBrand,
@@ -75,9 +60,6 @@ export function BrandTemaPicker({
     : marcas[0]?.slug ?? "";
   const [brand, setBrand] = useState(initialBrand);
   const temas = marcas.find((m) => m.slug === brand)?.temas ?? [];
-  // Ordem alfabetica (pt-BR, ignora acento/caixa) e remove qualquer
-  // 'Outro'/'Outros' vindo do DB pra nao duplicar a opcao fixa de tema
-  // livre, que sempre fica por ultimo.
   const temasOrdenados = [...temas]
     .filter((t) => t !== "Outro" && t !== "Outros")
     .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
@@ -149,9 +131,7 @@ export function BrandTemaPicker({
                 className="mt-1"
               />
               <div>
-                <div className="text-sm font-medium text-onix-900">
-                  {o.label}
-                </div>
+                <div className="text-sm font-medium text-onix-900">{o.label}</div>
                 <div className="text-xs text-g60">{o.hint}</div>
               </div>
             </label>
@@ -195,8 +175,3 @@ export function BrandTemaPicker({
     </div>
   );
 }
-```
-
-4. Scroll → **"Commit changes..."** → **"Commit changes"**.
-
-Me confirma pra eu mandar o **arquivo 7** (o `novo/page.tsx` com o input de data).
