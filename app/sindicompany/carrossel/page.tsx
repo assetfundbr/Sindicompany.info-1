@@ -1,3 +1,12 @@
+## Arquivo 5 de 9 — `app/sindicompany/carrossel/page.tsx` (substituir TUDO)
+
+**Onde editar:**
+
+1. Abre: `https://github.com/dicadajumoreira/Sindicompany.info/blob/main/app/sindicompany/carrossel/page.tsx`
+2. **Lápis** → "Edit this file" → **Ctrl+A** → **Delete**.
+3. Cola o conteúdo abaixo:
+
+```typescript
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -84,12 +93,20 @@ export default async function CarrosseisPage() {
               com identidade visual da marca aplicada automaticamente.
             </p>
           </div>
-          <Link
-            href="/sindicompany/carrossel/novo"
-            className="inline-flex items-center px-4 py-2.5 rounded-lg bg-onix-900 text-white font-medium hover:bg-onix-800 text-sm"
-          >
-            + Novo carrossel
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/sindicompany/carrossel/pauteiro"
+              className="inline-flex items-center px-4 py-2.5 rounded-lg border border-onix-200 bg-white text-onix-900 font-medium hover:bg-onix-50 text-sm"
+            >
+              Pauteiro
+            </Link>
+            <Link
+              href="/sindicompany/carrossel/novo"
+              className="inline-flex items-center px-4 py-2.5 rounded-lg bg-onix-900 text-white font-medium hover:bg-onix-800 text-sm"
+            >
+              + Novo carrossel
+            </Link>
+          </div>
         </header>
 
         {dbError && (
@@ -132,7 +149,7 @@ export default async function CarrosseisPage() {
                     Marca
                   </th>
                   <th className="text-left font-semibold text-onix-900 px-5 py-3">
-                    Título
+                    Postagem
                   </th>
                   <th className="text-left font-semibold text-onix-900 px-5 py-3">
                     Tema
@@ -212,3 +229,8 @@ export default async function CarrosseisPage() {
     </DashboardShell>
   );
 }
+```
+
+4. Scroll → **"Commit changes..."** → **"Commit changes"**.
+
+Me confirma pra eu mandar o **arquivo 6** (o `brand-tema-picker` com alfabético + Outro).
