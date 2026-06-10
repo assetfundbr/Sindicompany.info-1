@@ -7,7 +7,7 @@
  *
  * Env vars necessárias:
  *   GITHUB_DISPATCH_TOKEN   PAT com permissão Actions:write no repo
- *   GITHUB_REPO             "owner/repo" (ex: "dicadajumoreira/Sindicompany.info")
+ *   GITHUB_REPO             "owner/repo" (ex: "dicadajumoreira/Hubstation")
  *
  * Se uma das duas faltar, o disparo é pulado com warning no console
  * (a revista fica em em_producao até alguém intervir manualmente).
