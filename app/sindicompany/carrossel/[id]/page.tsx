@@ -228,7 +228,7 @@ export default async function CarrosselDetailPage({
               ))}
             </div>
             <p className="text-xs text-g60 mt-2">
-              Clique numa miniatura pra abrir o PNG em 4K (botão direito → "Salvar imagem como…"), ou clique em "Abrir carrossel" pra navegar slide a slide.
+              Clique numa miniatura pra abrir o PNG em 4K (botão direito → &quot;Salvar imagem como…&quot;), ou clique em &quot;Abrir carrossel&quot; pra navegar slide a slide.
             </p>
           </section>
         )}
